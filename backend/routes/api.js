@@ -24,7 +24,13 @@ router.get('/jd/:id', jdController.getJDById);
 // POST /api/resume - Upload PDF resume, extract skills, and score against JD
 router.post('/resume', upload.single('resumePdf'), resumeController.uploadResume);
 
+// POST /api/resume/analyze - Unified analysis with JD text & email reporting
+router.post('/resume/analyze', upload.single('resumePdf'), resumeController.unifiedAnalyze);
+
 // GET /api/candidates/:jdId - Get all candidates scored for a specific JD
 router.get('/candidates/:jdId', resumeController.getCandidatesByJD);
+
+// GET /api/candidates - Get ALL candidates sorted by score
+router.get('/candidates', resumeController.getAllCandidates);
 
 module.exports = router;

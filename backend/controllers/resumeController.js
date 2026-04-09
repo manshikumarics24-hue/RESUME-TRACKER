@@ -1,7 +1,8 @@
 const Candidate = require('../models/Candidate');
 const JobDescription = require('../models/JobDescription');
-const { extractTextFromPDF } = require('../services/pdfService');
-const { extractCandidateSkills } = require('../services/claudeService');
+const { extractTextFromPDF, generateAnalysisPDF } = require('../services/pdfService');
+const { extractCandidateSkills, analyzeUnifiedProfile } = require('../services/geminiService');
+const { sendAnalysisEmail } = require('../services/emailService');
 
 /**
  * Upload and process a candidate's resume (PDF)
@@ -100,6 +101,62 @@ exports.getCandidatesByJD = async (req, res) => {
     res.status(200).json({ success: true, data: candidates });
   } catch (error) {
     console.error('Error getting candidates:', error);
+    res.status(500).json({ error: 'Server error retrieving candidates' });
+  }
+};
+
+/**
+ * Perform Unified Analysis and Email PDF
+ */
+exports.unifiedAnalyze = async (req, res) => {
+  try {
+    const { file } = req;
+    const { email, candidateName, jdText } = req.body;
+
+    if (!file) return res.status(400).json({ error: 'Resume PDF missing' });
+    if (!jdText) return res.status(400).json({ error: 'Job Description text is required' });
+
+    // Step 1: Extract Text from Resume PDF
+    const resumeText = await extractTextFromPDF(file.buffer);
+
+    // Step 2: Use Claude for unified analysis combining resume + JD
+    const analysisData = await analyzeUnifiedProfile(resumeText, jdText);
+
+    // Step 3: Generate the visual PDF Report containing the output
+    const pdfBuffer = await generateAnalysisPDF(analysisData, candidateName || 'Candidate');
+
+    // Step 4: Save candidate to DB for pipeline tracking
+    const newCandidate = new Candidate({
+      name: candidateName || 'Unknown',
+      email: email || '',
+      rawText: resumeText,
+      skills: analysisData.skills || [],
+      matchPercentage: analysisData.matchScore || 0
+    });
+    await newCandidate.save();
+
+    // Step 5: Email the PDF 
+    if (email) {
+      await sendAnalysisEmail(email, pdfBuffer, candidateName || 'Candidate');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: analysisData,
+      message: email ? 'Analysis complete. Email sent with PDF.' : 'Analysis complete.'
+    });
+  } catch(error) {
+    console.error('Unified analysis error:', error);
+    res.status(500).json({ error: 'Internal Server Error during unified analysis' });
+  }
+};
+
+// GET /api/candidates — list all candidates sorted by match score
+exports.getAllCandidates = async (req, res) => {
+  try {
+    const candidates = await Candidate.find().sort({ matchPercentage: -1 });
+    res.status(200).json({ success: true, data: candidates });
+  } catch (error) {
     res.status(500).json({ error: 'Server error retrieving candidates' });
   }
 };

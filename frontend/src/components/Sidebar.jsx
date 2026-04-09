@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Briefcase, Columns } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Columns, User } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const navItems = [
     { path: '/', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { path: '/parser', name: 'AI Parser', icon: <FileText size={20} /> },
-    { path: '/matcher', name: 'JD Matcher', icon: <Briefcase size={20} /> },
-    { path: '/board', name: 'Kanban Board', icon: <Columns size={20} /> },
+    { path: '/profile', name: 'View Profile', icon: <User size={20} /> },
+    { path: '/matcher', name: 'Job Matcher', icon: <Briefcase size={20} /> },
+    { path: '/board', name: 'Candidate Pipeline', icon: <Columns size={20} /> },
   ];
 
   return (

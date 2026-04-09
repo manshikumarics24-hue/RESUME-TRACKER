@@ -1,107 +1,159 @@
 import React, { useState } from 'react';
-import { Target, Search, ChevronRight, Zap } from 'lucide-react';
+import { Target, Search, UploadCloud, FileText, Zap, UserCircle, Bot } from 'lucide-react';
 import './JdMatcher.css';
 
 export default function JdMatcher() {
   const [jdText, setJdText] = useState('');
-  const [isMatching, setIsMatching] = useState(false);
-  const [results, setResults] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [email, setEmail] = useState('');
+  const [candidateName, setCandidateName] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'ai', text: "Hello! Upload your resume and paste a Job Description. I'll instantly analyze your profile against the job and give you feedback!" }
+  ]);
 
-  const MOCK_RESULTS = [
-    { id: 1, name: 'Sarah Jenkins', role: 'Senior Frontend Dev', score: 92, status: 'Shortlisted', matchColor: 'green' },
-    { id: 2, name: 'Michael Chen', role: 'Fullstack Engineer', score: 74, status: 'Pending', matchColor: 'yellow' },
-    { id: 3, name: 'Elena Rodriguez', role: 'React Developer', score: 68, status: 'Pending', matchColor: 'yellow' },
-    { id: 4, name: 'David Smith', role: 'Backend Dev', score: 45, status: 'Rejected', matchColor: 'red' },
-  ];
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setResumeFile(e.target.files[0]);
+    }
+  };
 
-  const handleMatch = () => {
-    if (!jdText.trim()) return;
-    setIsMatching(true);
-    setTimeout(() => {
-      setResults(MOCK_RESULTS);
-      setIsMatching(false);
-    }, 1500);
+  const startAnalysis = async () => {
+    if (!resumeFile || !jdText.trim()) return;
+    
+    setIsAnalyzing(true);
+    setChatMessages(prev => [...prev, { role: 'user', text: `Please analyze my resume (${resumeFile.name}) against the provided JD.` }]);
+
+    const formData = new FormData();
+    formData.append('resumePdf', resumeFile);
+    formData.append('jdText', jdText);
+    if (email) formData.append('email', email);
+    if (candidateName) formData.append('candidateName', candidateName);
+
+    try {
+      const response = await fetch('http://localhost:5001/api/resume/analyze', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const aiResponse = data.data;
+        const matchedJobs = aiResponse.suitableJobs ? aiResponse.suitableJobs.join(', ') : '';
+        const missingSkills = aiResponse.skillsToWorkOn ? aiResponse.skillsToWorkOn.join('\n- ') : '';
+        
+        const msg = `Based on the analysis:\n\n✅ Suitable roles for you: ${matchedJobs}\n\n⚠️ Skills you need to work on:\n- ${missingSkills}\n\n📝 Detailed Feedback:\n${aiResponse.feedbackText || 'No feedback provided'}\n\nOverall Match Score: ${aiResponse.matchScore || 'N/A'}%`;
+        setChatMessages(prev => [...prev, { role: 'ai', text: msg }]);
+      } else {
+        setChatMessages(prev => [...prev, { role: 'ai', text: `Error: ${data.error || 'Server failed to return an analysis.'}` }]);
+      }
+    } catch (error) {
+      console.error(error);
+      setChatMessages(prev => [...prev, { role: 'ai', text: "Network error. Make sure your local Backend server is running on port 5001." }]);
+    }
+    
+    setIsAnalyzing(false);
   };
 
   return (
-    <div className="page-container fade-in jd-page">
+    <div className="page-container fade-in">
       <header className="page-header">
         <div>
-          <h1 className="heading-lg">Job Description Matcher</h1>
-          <p className="text-muted">Paste your Job Description clearly to find the best candidate matches.</p>
+          <h1 className="heading-lg">Unified Job Matcher</h1>
+          <p className="text-muted">Upload your resume and paste a Job Description for instant AI-driven profile analysis.</p>
         </div>
       </header>
 
-      <div className="matcher-layout">
-        <div className="jd-input-section glass-panel">
-          <div className="section-header">
-            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Target size={20} className="text-blue" /> JD Requirements
+      <div className="matcher-unified-container">
+        
+        {/* Left Side: Inputs */}
+        <div className="matcher-main">
+          
+          <div className="matcher-inputs-glass">
+            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <UploadCloud size={20} className="text-blue" /> 1. Upload Resume
             </h3>
-          </div>
-          <div className="jd-input-wrapper">
+            
+            <div className="upload-zone">
+              <input 
+                type="file" 
+                onChange={handleFileSelect} 
+                className="file-input" 
+                id="resumeUpload"
+                accept=".pdf,.doc,.docx"
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="resumeUpload" style={{ cursor: 'pointer', display: 'block' }}>
+                {resumeFile ? (
+                  <div>
+                    <FileText size={40} className="text-success" style={{ margin: '0 auto 1rem' }} />
+                    <h4 style={{ color: '#fff' }}>{resumeFile.name}</h4>
+                    <p className="text-muted">Click to change file</p>
+                  </div>
+                ) : (
+                  <div>
+                    <UploadCloud size={40} className="text-muted" style={{ margin: '0 auto 1rem' }} />
+                    <h4 style={{ color: '#fff' }}>Click to browse or Drag & Drop</h4>
+                    <p className="text-muted">PDF, DOCX formats supported</p>
+                  </div>
+                )}
+              </label>
+            </div>
+
+            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 1rem' }}>
+              <UserCircle size={20} className="text-success" /> 2. Details (Required for Email Report)
+            </h3>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified" style={{ minHeight: '50px', padding: '0.75rem', flex: 1 }} />
+              <input type="email" placeholder="Email to receive PDF" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified" style={{ minHeight: '50px', padding: '0.75rem', flex: 1 }} />
+            </div>
+
+            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 1rem' }}>
+              <Target size={20} className="text-purple" /> 3. Job Description
+            </h3>
+
             <textarea 
-              className="jd-textarea" 
-              placeholder="Paste the Job Description here. Ensure you include key skills, experience required, and core responsibilities for better AI matching..."
+              className="textarea-unified" 
+              placeholder="Paste the Job Description here..."
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
             ></textarea>
-            <div className="input-footer">
-              <span className="text-muted">{jdText.length} characters</span>
-              <button 
-                className={`primary-btn match-btn ${!jdText.trim() || isMatching ? 'disabled' : ''}`}
-                onClick={handleMatch}
-                disabled={!jdText.trim() || isMatching}
-              >
-                {isMatching ? 'Analyzing...' : <><Zap size={18} /> Find Matches</>}
-              </button>
-            </div>
+
+            <button 
+              className={`primary-btn ${(!resumeFile || !jdText.trim() || isAnalyzing) ? 'disabled' : ''}`}
+              style={{ marginTop: '1.5rem', width: '100%', padding: '1rem', display: 'flex', justifyContent: 'center' }}
+              onClick={startAnalysis}
+              disabled={!resumeFile || !jdText.trim() || isAnalyzing}
+            >
+              {isAnalyzing ? "AI is analyzing..." : <><Zap size={18} /> Analyze Profile & Match Jobs</>}
+            </button>
           </div>
         </div>
 
-        <div className="results-section glass-panel">
-          <div className="section-header">
-            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Search size={20} className="text-purple" /> Ranked Candidates
-            </h3>
+        {/* Right Side: AI Assistant Chat */}
+        <div className="ai-sidebar">
+          <div className="ai-chat-header">
+            <Bot size={24} className="text-blue" />
+            <span>AI Career Assistant</span>
           </div>
-          
-          <div className="results-list">
-            {!results && !isMatching ? (
-              <div className="empty-state">
-                <Target size={48} className="text-muted" style={{ opacity: 0.5, marginBottom: '1rem' }} />
-                <p className="text-muted">Enter a JD and click "Find Matches" to rank candidates.</p>
-              </div>
-            ) : isMatching ? (
-              <div className="empty-state">
-                <div className="loader spin"></div>
-                <p className="text-muted" style={{ marginTop: '1rem' }}>AI is ranking the candidates...</p>
-              </div>
-            ) : (
-              results.map((candidate, idx) => (
-                <div key={candidate.id} className="candidate-card slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
-                  <div className="rank-badge">#{idx + 1}</div>
-                  <div className="candidate-info">
-                    <h4>{candidate.name}</h4>
-                    <p className="text-muted">{candidate.role}</p>
-                  </div>
-                  <div className="score-area">
-                    <div className="score-bar-bg">
-                      <div 
-                        className={`score-bar-fill bg-${candidate.matchColor}`} 
-                        style={{ width: `${candidate.score}%` }}
-                      ></div>
-                    </div>
-                    <span className={`score-text text-${candidate.matchColor}`}>{candidate.score}%</span>
-                  </div>
-                  <button className="icon-btn">
-                    <ChevronRight size={20} />
-                  </button>
+          <div className="ai-chat-body">
+            {chatMessages.map((msg, idx) => (
+              <div key={idx} className={msg.role === 'ai' ? 'ai-bubble' : 'user-bubble'}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', opacity: 0.8 }}>
+                  {msg.role === 'ai' ? <Bot size={16} /> : <UserCircle size={16} />}
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.role === 'ai' ? 'Assistant' : 'You'}</span>
                 </div>
-              ))
+                <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+              </div>
+            ))}
+            {isAnalyzing && (
+              <div className="ai-bubble">
+                <div className="loader spin" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }}></div>
+              </div>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

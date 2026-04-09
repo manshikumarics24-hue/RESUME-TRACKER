@@ -1,0 +1,24 @@
+/* ViewProfile.css */
+.profile-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-bar {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.3s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+}
+
+.domain-selector button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.domain-selector button.active:hover {
+  background: var(--accent-blue) !important;
+}
