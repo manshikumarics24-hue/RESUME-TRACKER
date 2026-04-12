@@ -26,6 +26,26 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+body.light-theme {
+  --bg-dark: #f1f5f9;
+  --bg-darker: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card-hover: rgba(255, 255, 255, 0.9);
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  
+  /* keeping the nice vibrant accents */
+  --accent-purple: #7c3aed;
+  --accent-blue: #2563eb;
+  
+  --border-glass: rgba(0, 0, 0, 0.05);
+  --border-glass-bright: rgba(0, 0, 0, 0.1);
+  
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+
 * {
   box-sizing: border-box;
   margin: 0;

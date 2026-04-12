@@ -2,15 +2,24 @@ const nodemailer = require('nodemailer');
 
 const sendAnalysisEmail = async (userEmail, pdfBuffer, candidateName) => {
   try {
-    // Note: For real environment, configure with real App passwords / OAuth
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('⚠️ No Email credentials in .env — skipping email step.');
+      return false;
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        // Gmail App Password: 16 chars, spaces optional but stripped for safety
         pass: (process.env.EMAIL_PASS || '').replace(/\s/g, '')
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
+
+    // Verify credentials before sending
+    await transporter.verify();
 
     const mailOptions = {
       from: process.env.EMAIL_USER || 'noreply@careertrack.ai',
@@ -26,12 +35,8 @@ const sendAnalysisEmail = async (userEmail, pdfBuffer, candidateName) => {
       ]
     };
 
-    if(process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Email sent successfully:', info.messageId);
-    } else {
-      console.log('⚠️ No Email credentials in .env — skipping email step.');
-    }
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.messageId);
     
     return true;
   } catch (error) {

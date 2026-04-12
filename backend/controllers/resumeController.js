@@ -131,7 +131,10 @@ exports.unifiedAnalyze = async (req, res) => {
       email: email || '',
       rawText: resumeText,
       skills: analysisData.skills || [],
-      matchPercentage: analysisData.matchScore || 0
+      matchPercentage: analysisData.matchScore || 0,
+      feedbackText: analysisData.feedbackText || '',
+      suitableJobs: analysisData.suitableJobs || [],
+      skillsToWorkOn: analysisData.skillsToWorkOn || []
     });
     await newCandidate.save();
 
@@ -158,5 +161,18 @@ exports.getAllCandidates = async (req, res) => {
     res.status(200).json({ success: true, data: candidates });
   } catch (error) {
     res.status(500).json({ error: 'Server error retrieving candidates' });
+  }
+};
+
+// DELETE /api/candidates/:id — remove a candidate by ID
+exports.deleteCandidate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Candidate.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ error: 'Candidate not found' });
+    res.status(200).json({ success: true, message: 'Candidate removed successfully' });
+  } catch (error) {
+    console.error('Error deleting candidate:', error);
+    res.status(500).json({ error: 'Server error deleting candidate' });
   }
 };

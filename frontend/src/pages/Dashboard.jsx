@@ -1,6 +1,7 @@
 import React from 'react';
 import { Target, AlertTriangle } from 'lucide-react';
 import './Dashboard.css';
+import aiDashboardGraphic from '../assets/ai_dashboard.png';
 
 export default function Dashboard({ userInsights }) {
   const insights = userInsights || {
@@ -19,11 +20,17 @@ export default function Dashboard({ userInsights }) {
       </header>
 
       <div className="dashboard-main-content">
-        <div className="glass-panel central-3d-graphic" style={{ textAlign: 'center', padding: '4rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Placeholder for 3D graphic / illustration */}
-          <div className="graphic-placeholder" style={{ animation: 'float 6s ease-in-out infinite' }}>
-            <span style={{ fontSize: '100px', filter: 'drop-shadow(0px 10px 20px rgba(59, 130, 246, 0.4))' }}>🚀</span>
-            <h2 className="heading-lg" style={{ marginTop: '1.5rem', background: 'linear-gradient(to right, var(--accent-blue), var(--accent-purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <div className="glass-panel central-3d-graphic" style={{ textAlign: 'center', padding: '3rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative glow behind image */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '300px', height: '300px', background: 'var(--accent-gradient)', filter: 'blur(80px)', opacity: '0.15', borderRadius: '50%', zIndex: 0 }}></div>
+          
+          <div className="graphic-placeholder" style={{ animation: 'float 6s ease-in-out infinite', zIndex: 1, position: 'relative' }}>
+            <img 
+              src={aiDashboardGraphic} 
+              alt="AI Data Visualization" 
+              style={{ width: '100%', maxWidth: '350px', objectFit: 'contain', filter: 'drop-shadow(0px 20px 30px rgba(0, 0, 0, 0.4))', borderRadius: '20px' }} 
+            />
+            <h2 className="heading-lg" style={{ marginTop: '2rem', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: '0 0 20px rgba(139, 92, 246, 0.1)' }}>
               Your Career Progression Visualized
             </h2>
           </div>

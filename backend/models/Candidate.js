@@ -28,6 +28,18 @@ const candidateSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  feedbackText: {
+    type: String,
+    default: '',
+  },
+  suitableJobs: {
+    type: [String],
+    default: [],
+  },
+  skillsToWorkOn: {
+    type: [String],
+    default: [],
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Candidate', candidateSchema);

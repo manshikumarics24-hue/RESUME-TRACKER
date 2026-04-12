@@ -33,4 +33,7 @@ router.get('/candidates/:jdId', resumeController.getCandidatesByJD);
 // GET /api/candidates - Get ALL candidates sorted by score
 router.get('/candidates', resumeController.getAllCandidates);
 
+// DELETE /api/candidates/:id - Remove a specific candidate
+router.delete('/candidates/:id', resumeController.deleteCandidate);
+
 module.exports = router;

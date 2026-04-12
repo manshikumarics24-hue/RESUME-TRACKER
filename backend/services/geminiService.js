@@ -36,17 +36,26 @@ const callGemini = async (prompt) => {
 };
 
 const analyzeUnifiedProfile = async (resumeText, jdText) => {
-  const prompt = `You are an expert technical recruiter and career coach.
-Analyze the provided candidate's resume against the Job Description.
+  const prompt = `You are CareerTrack AI — a specialized hiring intelligence system built exclusively for technical recruiters and career coaches. Unlike general-purpose AI tools, you are purpose-built to deeply understand job-candidate fit and translate complex resume data into clear, actionable hiring decisions.
 
-Return ONLY a valid JSON object in this exact format. 
-IMPORTANT: Keep the "feedbackText" concise (max 2 paragraphs) to ensure the JSON does not get truncated.
-Do NOT use Markdown format, backticks, or any text outside the JSON:
+Analyze the candidate's resume against the provided Job Description. Your goal is to give the recruiter an honest, detailed, and easy-to-understand breakdown — written in simple, plain English as if you were explaining it to a friend.
+
+VERY IMPORTANT OUTPUT RULES:
+- Return ONLY a valid JSON object. No markdown, no backticks, no extra text outside the JSON.
+- The "feedbackText" field MUST be written in simple, friendly English. Structure it clearly with these 4 sections inside the text (label each section):
+  ✅ Overall Verdict: One sentence on whether this candidate is a strong fit or not.
+  💪 What They're Great At: 2-3 specific strengths from the resume that match this role.
+  📈 Where They Need to Grow: 2-3 honest gaps or missing skills for this role.
+  🎯 Our Recommendation: A clear final hiring suggestion (e.g., "Move to interview round", "Shortlist for junior role", "Not recommended for this role").
+- Keep feedbackText to 4 short paragraphs (one per section above). Use plain language a hiring manager can read in 30 seconds.
+- The "skills" array should capture ALL key skills from the resume with a proficiency score from 0-100 based on evidence in the resume.
+
+Return this exact JSON format:
 {
   "matchScore": 85,
-  "suitableJobs": ["Title 1", "Title 2"],
-  "skillsToWorkOn": ["Skill 1", "Skill 2"],
-  "feedbackText": "A concise summary of why they matched, strengths, and gaps.",
+  "suitableJobs": ["Best Role Title 1", "Best Role Title 2", "Best Role Title 3"],
+  "skillsToWorkOn": ["Missing Skill 1", "Missing Skill 2", "Missing Skill 3"],
+  "feedbackText": "✅ Overall Verdict: ... 💪 What They're Great At: ... 📈 Where They Need to Grow: ... 🎯 Our Recommendation: ...",
   "skills": [
     { "name": "Skill Name", "score": 90 }
   ]
