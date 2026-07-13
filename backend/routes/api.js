@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const { protect } = require('../middleware/authMiddleware');
 
 // Configure multer for memory storage (we just pass buffer to parse)
 const storage = multer.memoryStorage();
@@ -9,31 +10,32 @@ const upload = multer({ storage: storage });
 const jdController = require('../controllers/jdController');
 const resumeController = require('../controllers/resumeController');
 
-// --- JD Routes ---
-// POST /api/jd - Upload a Job Description text and extract skills
-router.post('/jd', jdController.createJD);
-
-// GET /api/jd - List all JDs
-router.get('/jd', jdController.getJDs);
-
-// GET /api/jd/:id - Get a specific JD
-router.get('/jd/:id', jdController.getJDById);
-
+// --- JD Routes (protected — admin only) ---
+router.post('/jd', protect, jdController.createJD);
+router.get('/jd', protect, jdController.getJDs);
+router.get('/jd/:id', protect, jdController.getJDById);
 
 // --- Resume Routes ---
-// POST /api/resume - Upload PDF resume, extract skills, and score against JD
-router.post('/resume', upload.single('resumePdf'), resumeController.uploadResume);
-
-// POST /api/resume/analyze - Unified analysis with JD text & email reporting
+// Public route — candidates/anyone uploads their resume
 router.post('/resume/analyze', upload.single('resumePdf'), resumeController.unifiedAnalyze);
 
-// GET /api/candidates/:jdId - Get all candidates scored for a specific JD
-router.get('/candidates/:jdId', resumeController.getCandidatesByJD);
+// Admin only — score against stored JD
+router.post('/resume', protect, upload.single('resumePdf'), resumeController.uploadResume);
 
-// GET /api/candidates - Get ALL candidates sorted by score
-router.get('/candidates', resumeController.getAllCandidates);
+// --- Candidate Routes ---
+// Public — candidate searches for their own profile (by name/email)
+router.get('/candidates/search', resumeController.searchCandidates);
 
-// DELETE /api/candidates/:id - Remove a specific candidate
-router.delete('/candidates/:id', resumeController.deleteCandidate);
+// Admin only — get all candidates
+router.get('/candidates', protect, resumeController.getAllCandidates);
+
+// Admin only — get candidates by JD
+router.get('/candidates/jd/:jdId', protect, resumeController.getCandidatesByJD);
+
+// Admin only — update candidate status
+router.patch('/candidates/:id/status', protect, resumeController.updateCandidateStatus);
+
+// Admin only — delete candidate
+router.delete('/candidates/:id', protect, resumeController.deleteCandidate);
 
 module.exports = router;

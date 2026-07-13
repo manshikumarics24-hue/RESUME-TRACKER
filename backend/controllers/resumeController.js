@@ -1,7 +1,7 @@
 const Candidate = require('../models/Candidate');
 const JobDescription = require('../models/JobDescription');
 const { extractTextFromPDF, generateAnalysisPDF } = require('../services/pdfService');
-const { extractCandidateSkills, analyzeUnifiedProfile } = require('../services/ollamaService');
+const { extractCandidateSkills, analyzeUnifiedProfile } = require('../services/groqService');
 const { sendAnalysisEmail } = require('../services/emailService');
 
 /**
@@ -10,7 +10,7 @@ const { sendAnalysisEmail } = require('../services/emailService');
 exports.uploadResume = async (req, res) => {
   try {
     const { file } = req;
-    const { email, candidateName, jobDescriptionId } = req.body;
+    const { email, candidateName, phone, jobDescriptionId } = req.body;
 
     if (!file) {
       return res.status(400).json({ error: 'Resume PDF missing' });
@@ -36,6 +36,7 @@ exports.uploadResume = async (req, res) => {
     const newCandidate = new Candidate({
       name: candidateName || 'Unknown Candidate',
       email: email || 'No email provided',
+      phone: phone || '',
       rawText,
       skills: candidateSkills,
       jobDescriptionId,
@@ -111,7 +112,7 @@ exports.getCandidatesByJD = async (req, res) => {
 exports.unifiedAnalyze = async (req, res) => {
   try {
     const { file } = req;
-    const { email, candidateName, jdText } = req.body;
+    const { email, candidateName, phone, jdText } = req.body;
 
     if (!file) return res.status(400).json({ error: 'Resume PDF missing' });
     if (!jdText) return res.status(400).json({ error: 'Job Description text is required' });
@@ -129,6 +130,7 @@ exports.unifiedAnalyze = async (req, res) => {
     const newCandidate = new Candidate({
       name: candidateName || 'Unknown',
       email: email || '',
+      phone: phone || '',
       rawText: resumeText,
       skills: analysisData.skills || [],
       matchPercentage: analysisData.matchScore || 0,
@@ -177,3 +179,54 @@ exports.deleteCandidate = async (req, res) => {
     res.status(500).json({ error: 'Server error deleting candidate' });
   }
 };
+
+// GET /api/candidates/search?q=name_or_email — Public endpoint for candidates to check their own profile
+exports.searchCandidates = async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ error: 'Please enter at least 2 characters to search.' });
+    }
+
+    const regex = new RegExp(query.trim(), 'i'); // case-insensitive
+    const candidates = await Candidate.find({
+      $or: [{ name: regex }, { email: regex }],
+    })
+      .select('-rawText') // exclude heavy raw text field
+      .sort({ matchPercentage: -1 })
+      .limit(20);
+
+    res.status(200).json({ success: true, data: candidates });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Server error during search' });
+  }
+};
+
+// PATCH /api/candidates/:id/status — Admin updates candidate status
+exports.updateCandidateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['Pending', 'Selected', 'Not Selected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: `Status must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    const updated = await Candidate.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) return res.status(404).json({ error: 'Candidate not found' });
+
+    res.status(200).json({ success: true, message: 'Status updated', data: updated });
+  } catch (error) {
+    console.error('Status update error:', error);
+    res.status(500).json({ error: 'Server error updating status' });
+  }
+};
+

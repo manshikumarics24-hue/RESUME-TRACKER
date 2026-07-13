@@ -7,6 +7,7 @@ export default function JdMatcher() {
   const [resumeFile, setResumeFile] = useState(null);
   const [email, setEmail] = useState('');
   const [candidateName, setCandidateName] = useState('');
+  const [phone, setPhone] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { role: 'ai', text: "Hello! Upload your resume and paste a Job Description. I'll instantly analyze your profile against the job and give you feedback!" }
@@ -29,9 +30,11 @@ export default function JdMatcher() {
     formData.append('jdText', jdText);
     if (email) formData.append('email', email);
     if (candidateName) formData.append('candidateName', candidateName);
+    if (phone) formData.append('phone', phone);
 
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
     try {
-      const response = await fetch('http://localhost:5001/api/resume/analyze', {
+      const response = await fetch(`${API_BASE}/api/resume/analyze`, {
         method: 'POST',
         body: formData
       });
@@ -103,9 +106,10 @@ export default function JdMatcher() {
             <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2.5rem 0 1rem' }}>
               <UserCircle size={20} className="text-purple" /> 2. Candidate Context
             </h3>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white' }} />
-              <input type="email" placeholder="Email (for PDF Report)" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white' }} />
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '160px' }} />
+              <input type="email" placeholder="Email (for PDF Report)" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '160px' }} />
+              <input type="tel" placeholder="Phone Number" value={phone} onChange={e => setPhone(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '140px' }} />
             </div>
 
             <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2.5rem 0 1rem' }}>
