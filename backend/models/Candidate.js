@@ -40,6 +40,11 @@ const candidateSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  status: {
+    type: String,
+    enum: ['Pending', 'Selected', 'Not Selected'],
+    default: 'Pending',
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Candidate', candidateSchema);

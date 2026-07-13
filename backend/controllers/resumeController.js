@@ -1,7 +1,7 @@
 const Candidate = require('../models/Candidate');
 const JobDescription = require('../models/JobDescription');
 const { extractTextFromPDF, generateAnalysisPDF } = require('../services/pdfService');
-const { extractCandidateSkills, analyzeUnifiedProfile } = require('../services/geminiService');
+const { extractCandidateSkills, analyzeUnifiedProfile } = require('../services/ollamaService');
 const { sendAnalysisEmail } = require('../services/emailService');
 
 /**
@@ -132,6 +132,7 @@ exports.unifiedAnalyze = async (req, res) => {
       rawText: resumeText,
       skills: analysisData.skills || [],
       matchPercentage: analysisData.matchScore || 0,
+      status: analysisData.status || 'Pending',
       feedbackText: analysisData.feedbackText || '',
       suitableJobs: analysisData.suitableJobs || [],
       skillsToWorkOn: analysisData.skillsToWorkOn || []
@@ -140,7 +141,7 @@ exports.unifiedAnalyze = async (req, res) => {
 
     // Step 5: Email the PDF 
     if (email) {
-      await sendAnalysisEmail(email, pdfBuffer, candidateName || 'Candidate');
+      await sendAnalysisEmail(email, pdfBuffer, candidateName || 'Candidate', analysisData.status);
     }
 
     res.status(200).json({

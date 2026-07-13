@@ -197,8 +197,8 @@ function CandidateModal({ candidate, onClose, onDelete }) {
 // ── Main KanbanBoard ────────────────────────────────────────────────────────
 export default function KanbanBoard() {
   const [columns, setColumns] = useState([
-    { id: 'col-ready', title: 'Ready for Interview', color: '#10b981', cards: [] },
-    { id: 'col-needs-work', title: 'Needs More Work', color: '#f59e0b', cards: [] }
+    { id: 'col-ready', title: 'Selected for Next Round', color: '#10b981', cards: [] },
+    { id: 'col-needs-work', title: 'Not Selected', color: '#ef4444', cards: [] }
   ]);
   const [loading, setLoading] = useState(true);
   const [draggedCard, setDraggedCard] = useState(null);
@@ -215,6 +215,7 @@ export default function KanbanBoard() {
           id: c._id,
           name: c.name || 'Unknown',
           score: c.matchPercentage,
+          status: c.status || 'Pending',
           email: c.email,
           feedbackText: c.feedbackText || '',
           suitableJobs: c.suitableJobs || [],
@@ -223,8 +224,8 @@ export default function KanbanBoard() {
           matchColor: c.matchPercentage >= 85 ? 'green' : c.matchPercentage >= 70 ? 'yellow' : 'red'
         });
         setColumns([
-          { id: 'col-ready', title: 'Ready for Interview', color: '#10b981', cards: json.data.filter(c => c.matchPercentage >= READY_THRESHOLD).map(mapCard) },
-          { id: 'col-needs-work', title: 'Needs More Work', color: '#f59e0b', cards: json.data.filter(c => c.matchPercentage < READY_THRESHOLD).map(mapCard) }
+          { id: 'col-ready', title: 'Selected for Next Round', color: '#10b981', cards: json.data.filter(c => c.status === 'Selected').map(mapCard) },
+          { id: 'col-needs-work', title: 'Not Selected', color: '#ef4444', cards: json.data.filter(c => c.status === 'Not Selected').map(mapCard) }
         ]);
       }
     } catch (e) {
@@ -310,15 +311,18 @@ export default function KanbanBoard() {
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem', fontSize: '0.85rem' }}>
                       No candidates yet. Analyze a resume to see results here.
                     </p>
-                  ) : col.cards.map(card => (
+                  ) : col.cards.map((card, idx) => (
                     <div
                       key={card.id}
-                      className="kanban-card"
+                      className="kanban-card fade-in"
                       draggable
                       onDragStart={(e) => handleDragStart(e, card, col.id)}
                       onDragEnd={handleDragEnd}
                       onClick={() => setSelectedCandidate(card)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ 
+                        cursor: 'pointer',
+                        animationDelay: `${idx * 0.05}s`
+                      }}
                     >
                       <div className="card-drag-handle">
                         <GripVertical size={14} className="text-muted" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Search, UploadCloud, FileText, Zap, UserCircle, Bot } from 'lucide-react';
+import { Target, Search, UploadCloud, FileText, Zap, UserCircle, Bot, RefreshCw } from 'lucide-react';
 import './JdMatcher.css';
 
 export default function JdMatcher() {
@@ -64,91 +64,105 @@ export default function JdMatcher() {
         </div>
       </header>
 
-      <div className="matcher-unified-container">
+      <div className="matcher-unified-container fade-in" style={{ animationDelay: '0.2s' }}>
         
         {/* Left Side: Inputs */}
         <div className="matcher-main">
           
-          <div className="matcher-inputs-glass">
+          <div className="matcher-inputs-glass glass-panel" style={{ padding: '2rem' }}>
             <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <UploadCloud size={20} className="text-blue" /> 1. Upload Resume
             </h3>
             
-            <div className="upload-zone">
+            <div className="upload-zone" style={{ border: '2px dashed var(--border-glass)', borderRadius: 'var(--radius-lg)', padding: '2rem', textAlign: 'center', transition: 'var(--transition)' }}>
               <input 
                 type="file" 
                 onChange={handleFileSelect} 
                 className="file-input" 
                 id="resumeUpload"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 style={{ display: 'none' }}
               />
               <label htmlFor="resumeUpload" style={{ cursor: 'pointer', display: 'block' }}>
                 {resumeFile ? (
-                  <div>
-                    <FileText size={40} className="text-success" style={{ margin: '0 auto 1rem' }} />
-                    <h4 style={{ color: '#fff' }}>{resumeFile.name}</h4>
-                    <p className="text-muted">Click to change file</p>
+                  <div className="fade-in">
+                    <FileText size={48} className="text-blue" style={{ margin: '0 auto 1rem', filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.4))' }} />
+                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>{resumeFile.name}</h4>
+                    <p className="text-muted">Click to swap file</p>
                   </div>
                 ) : (
-                  <div>
-                    <UploadCloud size={40} className="text-muted" style={{ margin: '0 auto 1rem' }} />
-                    <h4 style={{ color: '#fff' }}>Click to browse or Drag & Drop</h4>
-                    <p className="text-muted">PDF, DOCX formats supported</p>
+                  <div className="fade-in">
+                    <UploadCloud size={48} className="text-muted" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>Click to browse Resume</h4>
+                    <p className="text-muted">PDF format recommended</p>
                   </div>
                 )}
               </label>
             </div>
 
-            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 1rem' }}>
-              <UserCircle size={20} className="text-success" /> 2. Details (Required for Email Report)
+            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2.5rem 0 1rem' }}>
+              <UserCircle size={20} className="text-purple" /> 2. Candidate Context
             </h3>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified" style={{ minHeight: '50px', padding: '0.75rem', flex: 1 }} />
-              <input type="email" placeholder="Email to receive PDF" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified" style={{ minHeight: '50px', padding: '0.75rem', flex: 1 }} />
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white' }} />
+              <input type="email" placeholder="Email (for PDF Report)" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white' }} />
             </div>
 
-            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 1rem' }}>
-              <Target size={20} className="text-purple" /> 3. Job Description
+            <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2.5rem 0 1rem' }}>
+              <Target size={20} className="text-blue" /> 3. Job Description
             </h3>
 
             <textarea 
-              className="textarea-unified" 
-              placeholder="Paste the Job Description here..."
+              className="textarea-unified glass-panel" 
+              placeholder="Paste the Job Description text here..."
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
+              style={{ minHeight: '200px', width: '100%', padding: '1.5rem', color: 'white', fontSize: '0.95rem' }}
             ></textarea>
 
             <button 
               className={`primary-btn ${(!resumeFile || !jdText.trim() || isAnalyzing) ? 'disabled' : ''}`}
-              style={{ marginTop: '1.5rem', width: '100%', padding: '1rem', display: 'flex', justifyContent: 'center' }}
+              style={{ marginTop: '2.5rem', width: '100%', padding: '1.25rem', fontSize: '1.1rem', justifyContent: 'center' }}
               onClick={startAnalysis}
               disabled={!resumeFile || !jdText.trim() || isAnalyzing}
             >
-              {isAnalyzing ? "AI is analyzing..." : <><Zap size={18} /> Analyze Profile & Match Jobs</>}
+              {isAnalyzing ? (
+                <><RefreshCw size={20} className="spin" /> AI is calculating match...</>
+              ) : (
+                <><Zap size={20} /> Run Unified Match Analysis</>
+              )}
             </button>
           </div>
         </div>
 
         {/* Right Side: AI Assistant Chat */}
-        <div className="ai-sidebar">
-          <div className="ai-chat-header">
+        <div className="ai-sidebar glass-panel" style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="ai-chat-header" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-glass)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Bot size={24} className="text-blue" />
-            <span>AI Career Assistant</span>
+            <span style={{ fontWeight: 700, letterSpacing: '0.05em', color: 'white' }}>AI RECRUITMENT ASSISTANT</span>
           </div>
-          <div className="ai-chat-body">
+          <div className="ai-chat-body" style={{ padding: '1.5rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {chatMessages.map((msg, idx) => (
-              <div key={idx} className={msg.role === 'ai' ? 'ai-bubble' : 'user-bubble'}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', opacity: 0.8 }}>
-                  {msg.role === 'ai' ? <Bot size={16} /> : <UserCircle size={16} />}
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{msg.role === 'ai' ? 'Assistant' : 'You'}</span>
+              <div key={idx} className={`${msg.role === 'ai' ? 'ai-bubble' : 'user-bubble'} fade-in`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  {msg.role === 'ai' ? <Bot size={14} className="text-blue" /> : <UserCircle size={14} className="text-purple" />}
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', opacity: 0.6 }}>{msg.role === 'ai' ? 'CareerTrack AI' : 'Owner'}</span>
                 </div>
-                <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+                <div style={{ 
+                  background: msg.role === 'ai' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(139, 92, 246, 0.1)',
+                  border: `1px solid ${msg.role === 'ai' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(139, 92, 246, 0.2)'}`,
+                  padding: '1.25rem',
+                  borderRadius: msg.role === 'ai' ? '0 16px 16px 16px' : '16px 0 16px 16px',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.6',
+                  color: 'var(--text-main)',
+                  whiteSpace: 'pre-wrap'
+                }}>{msg.text}</div>
               </div>
             ))}
             {isAnalyzing && (
-              <div className="ai-bubble">
-                <div className="loader spin" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%' }}></div>
+              <div className="ai-bubble fade-in">
+                <div className="loader spin" style={{ width: 24, height: 24, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#3b82f6', borderRadius: '50%' }}></div>
               </div>
             )}
           </div>

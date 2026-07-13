@@ -1,5 +1,5 @@
 const JobDescription = require('../models/JobDescription');
-const { extractJDSkills } = require('../services/geminiService');
+const { extractJDSkills } = require('../services/ollamaService');
 
 /**
  * Upload a new job description, let Claude parse it into skills, and save to DB

@@ -104,6 +104,7 @@
   font-weight: 700;
   color: white;
   box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+  animation: glowPulse 3s infinite;
 }
 
 .interviewer-profile .info {
