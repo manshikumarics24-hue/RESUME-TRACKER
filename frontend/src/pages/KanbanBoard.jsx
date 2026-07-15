@@ -3,7 +3,7 @@ import { GripVertical, RefreshCw, Users, X, Trash2, Briefcase, TrendingUp, Star,
 import { useAuth } from '../context/AuthContext';
 import './KanbanBoard.css';
 
-const API_BASE = 'http://127.0.0.1:5001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 const READY_THRESHOLD = 70;
 

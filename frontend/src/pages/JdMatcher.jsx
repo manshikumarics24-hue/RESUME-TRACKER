@@ -32,7 +32,7 @@ export default function JdMatcher() {
     if (candidateName) formData.append('candidateName', candidateName);
     if (phone) formData.append('phone', phone);
 
-    const API_BASE = 'http://127.0.0.1:5001';
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
     try {
       const response = await fetch(`${API_BASE}/api/resume/analyze`, {
         method: 'POST',

@@ -5,7 +5,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
-const API_BASE = 'http://127.0.0.1:5001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 const SplineFallback = () => (
   <div className="flex flex-col items-center justify-center h-full text-muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '1rem' }}>
