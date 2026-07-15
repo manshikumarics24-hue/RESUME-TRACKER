@@ -7,17 +7,20 @@ const groq = new Groq({
 /**
  * Analyze a resume against a job description (unified profile analysis)
  */
-const analyzeUnifiedProfile = async (resumeText, jdText) => {
+const analyzeUnifiedProfile = async (resumeText, jdText, candidateName) => {
   try {
-    const systemPrompt = `You are an expert AI recruiter. Analyze the resume against the job role/description.
+    const systemPrompt = `You are a highly critical, meticulous, and expert AI technical recruiter. Analyze the candidate's resume strictly against the provided job description.
+CRITICAL INSTRUCTION: The candidate's name is "${candidateName || 'The Candidate'}". You MUST refer to them ONLY by this exact name in your summary, completely ignoring any other name printed inside the resume text itself.
+DO NOT give generic scores. Be highly precise and meticulous. If they lack required skills, score them heavily down (e.g., 20-50%). If they are a perfect match, score them high (e.g., 85-100%).
+
 Return ONLY a valid JSON object with this exact structure:
 {
-  "match_score": <number 0-100>,
-  "selection_status": "<selected|rejected>",
+  "match_score": <number 0-100, be highly precise and critical based on actual matching skills>,
+  "selection_status": "<selected|rejected> (reject if score < 70)",
   "job_interest": "<best matching job title>",
   "strong_skills": ["skill1", "skill2"],
   "skills_to_improve": ["skill1", "skill2"],
-  "summary": "<2-3 sentence professional feedback>"
+  "summary": "<Detailed, 3-paragraph highly analytical professional feedback. Use the exact candidate name provided. Explain precisely why the score was given, citing specific missing technologies or strong alignments.>"
 }
 No markdown, no extra text. Only JSON.`;
 
@@ -28,7 +31,7 @@ No markdown, no extra text. Only JSON.`;
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.1,
       max_tokens: 1024,
     });
@@ -74,7 +77,7 @@ const extractCandidateSkills = async (resumeText) => {
         },
         { role: 'user', content: `Resume:\n${resumeText}` },
       ],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.1,
       max_tokens: 512,
     });
@@ -108,7 +111,7 @@ const extractJDSkills = async (jdText) => {
         },
         { role: 'user', content: `Job Description:\n${jdText}` },
       ],
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.1,
       max_tokens: 512,
     });

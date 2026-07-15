@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { GripVertical, RefreshCw, Users, X, Trash2, Briefcase, TrendingUp, Star, Mail } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './KanbanBoard.css';
+
+const API_BASE = 'http://127.0.0.1:5001';
 
 const READY_THRESHOLD = 70;
 
 // ── Candidate Detail Modal ──────────────────────────────────────────────────
-function CandidateModal({ candidate, onClose, onDelete }) {
+function CandidateModal({ candidate, onClose, onDelete, token }) {
   if (!candidate) return null;
 
   const handleDelete = async () => {
     if (!window.confirm(`Remove ${candidate.name} from the pipeline?`)) return;
     try {
-      const res = await fetch(`http://localhost:5001/api/candidates/${candidate.id}`, {
-        method: 'DELETE'
+      const res = await fetch(`${API_BASE}/api/candidates/${candidate.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
       });
       const json = await res.json();
       if (json.success) {
@@ -196,6 +200,7 @@ function CandidateModal({ candidate, onClose, onDelete }) {
 
 // ── Main KanbanBoard ────────────────────────────────────────────────────────
 export default function KanbanBoard() {
+  const { token, isAuthenticated } = useAuth();
   const [columns, setColumns] = useState([
     { id: 'col-ready', title: 'Selected for Next Round', color: '#10b981', cards: [] },
     { id: 'col-needs-work', title: 'Not Selected', color: '#ef4444', cards: [] }
@@ -205,10 +210,12 @@ export default function KanbanBoard() {
   const [draggedColId, setDraggedColId] = useState(null);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const fetchCandidates = async () => {
-    setLoading(true);
+  const fetchCandidates = async (isInitial = false) => {
+    if (!isInitial) setLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/candidates');
+      const res = await fetch(`${API_BASE}/api/candidates`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const json = await res.json();
       if (json.success && json.data) {
         const mapCard = (c) => ({
@@ -234,7 +241,7 @@ export default function KanbanBoard() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchCandidates(); }, []);
+  useEffect(() => { fetchCandidates(true); }, []);
 
   const handleDeleteFromView = (deletedId) => {
     setColumns(prev => prev.map(col => ({
@@ -254,14 +261,30 @@ export default function KanbanBoard() {
     setDraggedColId(null);
   };
   const handleDragOver = (e) => e.preventDefault();
-  const handleDrop = (e, targetColId) => {
+  const handleDrop = async (e, targetColId) => {
     e.preventDefault();
     if (!draggedCard || draggedColId === targetColId) return;
+    
+    const newStatus = targetColId === 'col-ready' ? 'Selected' : 'Not Selected';
+
     setColumns(prev => prev.map(col => {
       if (col.id === draggedColId) return { ...col, cards: col.cards.filter(c => c.id !== draggedCard.id) };
-      if (col.id === targetColId) return { ...col, cards: [...col.cards, draggedCard] };
+      if (col.id === targetColId) return { ...col, cards: [...col.cards, { ...draggedCard, status: newStatus }] };
       return col;
     }));
+
+    try {
+      await fetch(`${API_BASE}/api/candidates/${draggedCard.id}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (err) {
+      console.error('Failed to update candidate status', err);
+    }
   };
 
   return (
@@ -271,6 +294,7 @@ export default function KanbanBoard() {
           candidate={selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
           onDelete={handleDeleteFromView}
+          token={token}
         />
       )}
 
@@ -288,6 +312,11 @@ export default function KanbanBoard() {
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
           <Users size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
           <p>Loading candidates...</p>
+        </div>
+      ) : !isAuthenticated ? (
+        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+          <h3 className="heading-md" style={{ marginBottom: '1rem' }}>Admin Access Required</h3>
+          <p>Please log in to view the Candidate Pipeline.</p>
         </div>
       ) : (
         <div className="board-scroll-container">

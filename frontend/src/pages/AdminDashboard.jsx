@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import './AdminDashboard.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 export default function AdminDashboard() {
   const { admin, token, logout } = useAuth();
@@ -35,6 +35,7 @@ export default function AdminDashboard() {
         setFiltered(json.data);
       }
     } catch (e) {
+      console.error('Fetch error:', e);
       setError('Failed to load candidates. Is the backend running?');
     }
     setLoading(false);

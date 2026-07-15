@@ -29,10 +29,10 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { path: '/', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    ...(isAuthenticated ? [{ path: '/', name: 'Dashboard', icon: <LayoutDashboard size={20} /> }] : []),
     { path: '/profile', name: 'My Profile', icon: <User size={20} /> },
     { path: '/matcher', name: 'Job Matcher', icon: <Briefcase size={20} /> },
-    { path: '/board', name: 'Candidate Pipeline', icon: <Columns size={20} /> },
+    ...(isAuthenticated ? [{ path: '/board', name: 'Candidate Pipeline', icon: <Columns size={20} /> }] : []),
   ];
 
   return (

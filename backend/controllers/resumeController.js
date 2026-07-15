@@ -121,7 +121,7 @@ exports.unifiedAnalyze = async (req, res) => {
     const resumeText = await extractTextFromPDF(file.buffer);
 
     // Step 2: Use Claude for unified analysis combining resume + JD
-    const analysisData = await analyzeUnifiedProfile(resumeText, jdText);
+    const analysisData = await analyzeUnifiedProfile(resumeText, jdText, candidateName);
 
     // Step 3: Generate the visual PDF Report containing the output
     const pdfBuffer = await generateAnalysisPDF(analysisData, candidateName || 'Candidate');

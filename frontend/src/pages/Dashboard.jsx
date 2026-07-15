@@ -2,9 +2,20 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { Target, AlertTriangle, RefreshCw, BarChart3, Users, CheckCircle2, Box } from 'lucide-react';
 import Spline from '@splinetool/react-spline';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
+const API_BASE = 'http://127.0.0.1:5001';
+
+const SplineFallback = () => (
+  <div className="flex flex-col items-center justify-center h-full text-muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '1rem' }}>
+    <Box size={64} className="float" style={{ opacity: 0.2 }} />
+    <p style={{ opacity: 0.5, fontWeight: 500 }}>Initializing Neural Workspace...</p>
+  </div>
+);
+
 export default function Dashboard() {
+  const { token, isAuthenticated } = useAuth();
   const [insights, setInsights] = useState({
     readyFor: [],
     needsWork: [],
@@ -14,10 +25,12 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchInsights = async () => {
-    setLoading(true);
+  const fetchInsights = async (isInitial = false) => {
+    if (!isInitial) setLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/candidates');
+      const res = await fetch(`${API_BASE}/api/candidates`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       const json = await res.json();
       if (json.success && json.data) {
         const candidates = json.data;
@@ -43,15 +56,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchInsights();
+    fetchInsights(true);
   }, []);
 
-  const SplineFallback = () => (
-    <div className="flex flex-col items-center justify-center h-full text-muted" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '1rem' }}>
-      <Box size={64} className="float" style={{ opacity: 0.2 }} />
-      <p style={{ opacity: 0.5, fontWeight: 500 }}>Initializing Neural Workspace...</p>
-    </div>
-  );
+
 
   return (
     <div className="dashboard-page fade-in">
@@ -60,7 +68,7 @@ export default function Dashboard() {
           <h1 className="heading-lg text-gradient">Recruitment Command Center</h1>
           <p className="text-muted">High-level intelligence & candidate selection metrics.</p>
         </div>
-        <button className="primary-btn" onClick={fetchInsights} disabled={loading}>
+        <button className="primary-btn" onClick={() => fetchInsights(false)} disabled={loading}>
           <RefreshCw size={18} className={loading ? 'spin' : ''} /> Sync Pipeline
         </button>
       </header>
@@ -78,48 +86,31 @@ export default function Dashboard() {
           
           <div style={{ position: 'absolute', bottom: '2rem', left: '2.5rem', zIndex: 2 }}>
             <h2 className="heading-lg" style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>
-              {insights.totalAnalyzed}
+              {isAuthenticated ? insights.totalAnalyzed : ''}
             </h2>
             <p className="text-muted" style={{ fontSize: '1.1rem', letterSpacing: '0.1em', fontWeight: 600 }}>CANDIDATES ANALYZED</p>
           </div>
 
           <div style={{ position: 'absolute', bottom: '2rem', right: '2.5rem', zIndex: 2, textAlign: 'right' }}>
             <h2 className="heading-lg" style={{ fontSize: '3rem', marginBottom: '0.5rem', color: '#10b981' }}>
-              {insights.selectedCount}
+              {isAuthenticated ? insights.selectedCount : ''}
             </h2>
             <p className="text-muted" style={{ fontSize: '1.1rem', letterSpacing: '0.1em', fontWeight: 600 }}>SELECTED FOR NEXT ROUND</p>
           </div>
         </div>
 
-        <div className="stats-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-              <Users size={24} />
+        <div className="stats-row" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '2rem', minHeight: '160px' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '1rem', textAlign: 'center' }}>
+            <div style={{ padding: '1rem', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+              <Users size={32} />
             </div>
             <div>
-              <p className="text-muted" style={{ fontSize: '0.8rem' }}>Total Applications</p>
-              <h4 className="heading-md" style={{ marginBottom: 0 }}>{insights.totalAnalyzed}</h4>
+              <p className="text-muted" style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Processed</p>
+              <h4 className="heading-md" style={{ marginBottom: 0, fontSize: '2.5rem' }}>{isAuthenticated ? insights.totalAnalyzed : ''}</h4>
             </div>
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-              <CheckCircle2 size={24} />
-            </div>
-            <div>
-              <p className="text-muted" style={{ fontSize: '0.8rem' }}>Selection Rate</p>
-              <h4 className="heading-md" style={{ marginBottom: 0 }}>
-                {insights.totalAnalyzed > 0 ? Math.round((insights.selectedCount / insights.totalAnalyzed) * 100) : 0}%
-              </h4>
-            </div>
-          </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
-              <BarChart3 size={24} />
-            </div>
-            <div>
-              <p className="text-muted" style={{ fontSize: '0.8rem' }}>Target Role</p>
-              <h4 className="heading-md" style={{ marginBottom: 0, fontSize: '1rem' }}>{insights.domain}</h4>
-            </div>
+          <div className="glass-panel" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+            <div style={{ width: '100%', height: '100%', minHeight: '160px', backgroundImage: 'url(/dashboard_ai.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.9 }} />
           </div>
         </div>
 

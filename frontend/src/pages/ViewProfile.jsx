@@ -3,7 +3,7 @@ import RadarChartWidget from '../components/RadarChartWidget';
 import { Search, Loader2, User, Phone, Mail, Star, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import './ViewProfile.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5001';
 
 export default function ViewProfile() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -199,11 +199,7 @@ export default function ViewProfile() {
                 <p className="text-muted" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
                   <Mail size={14} /> {candidate.email}
                 </p>
-                {candidate.phone && (
-                  <p className="text-muted" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Phone size={14} /> {candidate.phone}
-                  </p>
-                )}
+
               </div>
             </div>
             <div className="profile-top-right">

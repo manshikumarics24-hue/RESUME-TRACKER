@@ -32,7 +32,7 @@ export default function JdMatcher() {
     if (candidateName) formData.append('candidateName', candidateName);
     if (phone) formData.append('phone', phone);
 
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    const API_BASE = 'http://127.0.0.1:5001';
     try {
       const response = await fetch(`${API_BASE}/api/resume/analyze`, {
         method: 'POST',
@@ -52,7 +52,7 @@ export default function JdMatcher() {
       }
     } catch (error) {
       console.error(error);
-      setChatMessages(prev => [...prev, { role: 'ai', text: "Network error. Make sure your local Backend server is running on port 5001." }]);
+      setChatMessages(prev => [...prev, { role: 'ai', text: `Network Error (${error.message}). Make sure your Backend is running on port 5001 and check the backend terminal for crashes.` }]);
     }
     
     setIsAnalyzing(false);
@@ -90,13 +90,13 @@ export default function JdMatcher() {
                 {resumeFile ? (
                   <div className="fade-in">
                     <FileText size={48} className="text-blue" style={{ margin: '0 auto 1rem', filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.4))' }} />
-                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>{resumeFile.name}</h4>
+                    <h4 style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>{resumeFile.name}</h4>
                     <p className="text-muted">Click to swap file</p>
                   </div>
                 ) : (
                   <div className="fade-in">
                     <UploadCloud size={48} className="text-muted" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>Click to browse Resume</h4>
+                    <h4 style={{ color: 'var(--text-main)', fontSize: '1.1rem' }}>Click to browse Resume</h4>
                     <p className="text-muted">PDF format recommended</p>
                   </div>
                 )}
@@ -107,9 +107,9 @@ export default function JdMatcher() {
               <UserCircle size={20} className="text-purple" /> 2. Candidate Context
             </h3>
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '160px' }} />
-              <input type="email" placeholder="Email (for PDF Report)" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '160px' }} />
-              <input type="tel" placeholder="Phone Number" value={phone} onChange={e => setPhone(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, color: 'white', minWidth: '140px' }} />
+              <input type="text" placeholder="Candidate Name" value={candidateName} onChange={e => setCandidateName(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, minWidth: '160px' }} />
+              <input type="email" placeholder="Email (for PDF Report)" value={email} onChange={e => setEmail(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, minWidth: '160px' }} />
+              <input type="tel" placeholder="Phone Number" value={phone} onChange={e => setPhone(e.target.value)} className="textarea-unified glass-panel" style={{ minHeight: '50px', padding: '1rem', flex: 1, minWidth: '140px' }} />
             </div>
 
             <h3 className="heading-md" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '2.5rem 0 1rem' }}>
@@ -121,7 +121,7 @@ export default function JdMatcher() {
               placeholder="Paste the Job Description text here..."
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
-              style={{ minHeight: '200px', width: '100%', padding: '1.5rem', color: 'white', fontSize: '0.95rem' }}
+              style={{ minHeight: '200px', width: '100%', padding: '1.5rem', fontSize: '0.95rem' }}
             ></textarea>
 
             <button 
@@ -141,9 +141,9 @@ export default function JdMatcher() {
 
         {/* Right Side: AI Assistant Chat */}
         <div className="ai-sidebar glass-panel" style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div className="ai-chat-header" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid var(--border-glass)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="ai-chat-header">
             <Bot size={24} className="text-blue" />
-            <span style={{ fontWeight: 700, letterSpacing: '0.05em', color: 'white' }}>AI RECRUITMENT ASSISTANT</span>
+            <span style={{ fontWeight: 700, letterSpacing: '0.05em' }}>AI RECRUITMENT ASSISTANT</span>
           </div>
           <div className="ai-chat-body" style={{ padding: '1.5rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {chatMessages.map((msg, idx) => (
@@ -153,13 +153,11 @@ export default function JdMatcher() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', opacity: 0.6 }}>{msg.role === 'ai' ? 'CareerTrack AI' : 'Owner'}</span>
                 </div>
                 <div style={{ 
-                  background: msg.role === 'ai' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(139, 92, 246, 0.1)',
-                  border: `1px solid ${msg.role === 'ai' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(139, 92, 246, 0.2)'}`,
-                  padding: '1.25rem',
-                  borderRadius: msg.role === 'ai' ? '0 16px 16px 16px' : '16px 0 16px 16px',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
                   fontSize: '0.95rem',
                   lineHeight: '1.6',
-                  color: 'var(--text-main)',
                   whiteSpace: 'pre-wrap'
                 }}>{msg.text}</div>
               </div>
